@@ -1,11 +1,15 @@
-import { motion, useScroll, useTransform } from 'motion/react';
-import { useRef } from 'react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
+import { useRef, useState } from 'react';
 import { Button } from './ui/Button';
 import { Chip } from './ui/Chip';
 import { events } from '../data/events';
+import { X } from 'lucide-react';
 
 export function EventGrid() {
   const ref = useRef(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"]
@@ -67,7 +71,7 @@ export function EventGrid() {
                   
                   <div className="flex flex-col xl:flex-row gap-4 mt-auto pt-2 items-stretch">
                     <div className="flex-1 flex flex-col">
-                      <Button href={`#event-${event.id}`} className="w-full text-sm px-2 h-full min-h-[44px]">
+                      <Button href={`#event-${event.id}`} withArrow className="w-full text-sm px-2 h-full min-h-[44px]">
                         Prendre sa place
                       </Button>
                     </div>
@@ -77,7 +81,12 @@ export function EventGrid() {
                         JEU CONCOURS
                       </div>
                       <Button 
-                        href={`#event-${event.id}`} 
+                        onClick={() => {
+                          if (event.contest?.available !== false) {
+                            setSelectedEvent(event);
+                            setIsModalOpen(true);
+                          }
+                        }}
                         variant="outline" 
                         className="w-full text-sm px-2 h-full min-h-[44px]"
                         disabled={event.contest?.available === false}
@@ -97,6 +106,70 @@ export function EventGrid() {
           ))}
         </div>
       </div>
+
+      <AnimatePresence>
+        {isModalOpen && selectedEvent && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              className="absolute inset-0 bg-ink/80 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsModalOpen(false)}
+            />
+            <motion.div 
+              className="relative bg-bg w-full max-w-md p-8 rounded-xl shadow-2xl border border-ink/10"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            >
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="absolute top-4 right-4 p-2 text-ink/50 hover:text-ink transition-colors cursor-pointer"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              
+              <div className="mb-6">
+                <div className="inline-block bg-accent text-ink text-[10px] font-bold px-2 py-0.5 rounded-full mb-4">
+                  JEU CONCOURS • {selectedEvent.city.toUpperCase()}
+                </div>
+                <h3 className="text-3xl mb-2">Participer au jeu concours</h3>
+                <p className="text-ink/70 text-sm">
+                  Inscris-toi pour participer au jeu concours et tenter de gagner des places pour l’événement.
+                </p>
+              </div>
+
+              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); }}>
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-ink mb-1">Nom</label>
+                  <input 
+                    type="text" 
+                    id="name" 
+                    required
+                    className="w-full px-4 py-3 rounded-sm border border-ink/20 bg-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
+                    placeholder="Ton nom"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-ink mb-1">Email</label>
+                  <input 
+                    type="email" 
+                    id="email" 
+                    required
+                    className="w-full px-4 py-3 rounded-sm border border-ink/20 bg-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
+                    placeholder="ton@email.com"
+                  />
+                </div>
+                <Button type="submit" className="w-full mt-2">
+                  Participer au jeu concours
+                </Button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
