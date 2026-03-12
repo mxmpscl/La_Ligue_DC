@@ -84,10 +84,7 @@ export function Hero() {
             }}
             className="flex flex-col sm:flex-row items-start gap-4"
           >
-            <Button href="#event-lyon" variant="primary" withArrow>
-              Prendre sa place
-            </Button>
-            <Button href="#events" variant="outline">
+            <Button href="#events" variant="primary" withArrow>
               Voir les prochains événements
             </Button>
           </motion.div>
